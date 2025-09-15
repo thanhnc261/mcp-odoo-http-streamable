@@ -1,15 +1,27 @@
-# Odoo MCP Server
+# Odoo MCP Server with HTTP Streamable Transport
 
-An MCP server implementation that integrates with Odoo ERP systems, enabling AI assistants to interact with Odoo data and functionality through the Model Context Protocol.
+A comprehensive MCP (Model Context Protocol) server for interacting with Odoo ERP systems, supporting both **stdio** and **HTTP streamable** transports for maximum flexibility and integration options.
 
-## Features
+## 🚀 Features
 
+### Core Functionality
+* **Dual Transport Support**: Both stdio and HTTP streamable transports
 * **Comprehensive Odoo Integration**: Full access to Odoo models, records, and methods
-* **XML-RPC Communication**: Secure connection to Odoo instances via XML-RPC
-* **Flexible Configuration**: Support for config files and environment variables
-* **Resource Pattern System**: URI-based access to Odoo data structures
-* **Error Handling**: Clear error messages for common Odoo API issues
-* **Stateless Operations**: Clean request/response cycle for reliable integration
+* **Resource-based API**: Browse models, records, and search results as MCP resources
+* **Tool-based API**: Execute custom methods, search employees, and query holidays
+* **Real-time Streaming**: Server-Sent Events (SSE) support for HTTP transport
+* **Session Management**: Stateful and stateless HTTP session options
+
+### Transport Options
+* **Stdio Transport**: Traditional stdin/stdout for direct MCP client integration
+* **HTTP Streamable Transport**: RESTful HTTP API with optional SSE streaming
+* **Flexible Configuration**: Stateful/stateless modes, JSON responses, CORS support
+
+### Developer Experience
+* **Hot Reload Development Server**: Automatic restart on code changes
+* **Comprehensive Testing**: Unit, integration, and end-to-end tests
+* **Health Monitoring**: Built-in health checks and diagnostics
+* **Production Ready**: Docker support, systemd services, Kubernetes deployment
 
 ## Tools
 
@@ -58,29 +70,100 @@ An MCP server implementation that integrates with Odoo ERP systems, enabling AI 
   * Example: `odoo://search/res.partner/[["is_company","=",true]]`
   * Returns: JSON array of matching records (limited to 10 by default)
 
-## Configuration
+## 📋 Quick Start
 
-### Odoo Connection Setup
+### Installation
 
-1. Create a configuration file named `odoo_config.json`:
-
-```json
-{
-  "url": "https://your-odoo-instance.com",
-  "db": "your-database-name",
-  "username": "your-username",
-  "password": "your-password-or-api-key"
-}
+```bash
+git clone <repository-url>
+cd mcp-odoo-http-streamable
+pip install -e .
 ```
 
-2. Alternatively, use environment variables:
-   * `ODOO_URL`: Your Odoo server URL
-   * `ODOO_DB`: Database name
-   * `ODOO_USERNAME`: Login username
-   * `ODOO_PASSWORD`: Password or API key
-   * `ODOO_TIMEOUT`: Connection timeout in seconds (default: 30)
-   * `ODOO_VERIFY_SSL`: Whether to verify SSL certificates (default: true)
-   * `HTTP_PROXY`: Force the ODOO connection to use an HTTP proxy
+### Configuration
+
+Set your Odoo connection details:
+
+```bash
+export ODOO_URL="https://your-odoo-instance.com"
+export ODOO_DB="your_database_name"
+export ODOO_USERNAME="your_username" 
+export ODOO_PASSWORD="your_password"
+```
+
+### Running the Server
+
+#### Stdio Transport (for MCP clients like Claude Desktop)
+```bash
+python run_server.py --transport stdio
+```
+
+#### HTTP Streamable Transport (for web applications)
+```bash
+# Basic HTTP server with sessions and SSE
+python run_server.py --transport streamable-http --port 3000
+
+# Stateless HTTP server (better for scaling)
+python run_server.py --transport streamable-http --port 3000 --stateless
+
+# JSON response mode (no SSE streams)
+python run_server.py --transport streamable-http --port 3000 --json-response
+```
+
+## 📚 Documentation
+
+- **[Transport Configuration](docs/transports.md)** - Detailed transport setup and options
+- **[API Reference](docs/api-reference.md)** - Complete API documentation
+- **[Deployment Guide](docs/deployment.md)** - Production deployment instructions  
+- **[Development Guide](docs/development.md)** - Contributing and extending the server
+
+## 🛠️ Development
+
+### Setup Development Environment
+
+```bash
+# Quick setup with script
+./scripts/setup_dev.sh
+
+# Or manual setup
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -e ".[dev]"
+```
+
+### Development Commands
+
+```bash
+# Start development server with hot reload
+python scripts/dev_server.py --transport streamable-http
+
+# Run tests with coverage
+python scripts/test_runner.py --type unit --coverage
+
+# Health check
+python scripts/health_check.py
+
+# Format and lint code
+python scripts/test_runner.py --format --lint
+```
+
+## Configuration Details
+
+### Environment Variables
+
+```bash
+# Required Odoo Configuration
+export ODOO_URL="https://your-odoo-instance.com"
+export ODOO_DB="your_database"
+export ODOO_USERNAME="your_username"
+export ODOO_PASSWORD="your_password"
+
+# Optional Configuration
+export ODOO_API_KEY="alternative_to_password"
+export MCP_LOG_LEVEL="INFO"
+export MCP_HOST="127.0.0.1"
+export MCP_PORT="3000"
+```
 
 ### Usage with Claude Desktop
 

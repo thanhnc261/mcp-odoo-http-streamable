@@ -1,5 +1,7 @@
 """
-Actualización del servidor MCP principal para integrar todas las extensiones
+MCP server for Odoo integration
+
+Provides MCP tools and resources for interacting with Odoo ERP systems
 """
 
 import json
@@ -12,7 +14,6 @@ from mcp.server.fastmcp import Context, FastMCP
 from pydantic import BaseModel, Field
 
 from .odoo_client import OdooClient, get_odoo_client
-from .extensions import register_all_extensions
 
 
 @dataclass
@@ -37,12 +38,31 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
         pass
 
 
-# Create MCP server
+# Create MCP server with support for both stdio and HTTP streamable transports
+# For HTTP streamable transport with stateful sessions (default)
 mcp = FastMCP(
     "Odoo MCP Server",
     dependencies=["requests"],
     lifespan=app_lifespan,
 )
+
+# Alternative configurations:
+# For stateless HTTP (no session persistence):
+# mcp = FastMCP(
+#     "Odoo MCP Server",
+#     dependencies=["requests"],
+#     lifespan=app_lifespan,
+#     stateless_http=True,
+# )
+
+# For stateless HTTP with JSON response (no SSE streams):
+# mcp = FastMCP(
+#     "Odoo MCP Server", 
+#     dependencies=["requests"],
+#     lifespan=app_lifespan,
+#     stateless_http=True,
+#     json_response=True,
+# )
 
 
 # ----- MCP Resources -----
@@ -440,7 +460,3 @@ def search_holidays(
 
     except Exception as e:
         return SearchHolidaysResponse(success=False, error=str(e))
-
-
-# Registrar todas las extensiones
-register_all_extensions(mcp)
