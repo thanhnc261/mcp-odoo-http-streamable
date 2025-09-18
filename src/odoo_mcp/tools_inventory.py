@@ -4,13 +4,34 @@ Implementación de herramientas (tools) para inventario en MCP-Odoo
 
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
-from mcp.server.fastmcp import FastMCP, Context
+from fastmcp import FastMCP, Context
 
 from .models import (
     ProductAvailabilityInput,
     InventoryAdjustmentCreate,
     InventoryTurnoverInput
 )
+
+def _check_stock_module_available(odoo) -> bool:
+    """Check if stock module is installed and stock fields are available."""
+    try:
+        # Try to get fields on product.product to see if stock fields exist
+        fields = odoo.get_model_fields('product.product')
+        return 'qty_available' in fields
+    except:
+        return False
+
+def _get_available_stock_fields(odoo) -> List[str]:
+    """Get list of available stock-related fields on product.product."""
+    try:
+        fields = odoo.get_model_fields('product.product')
+        stock_fields = []
+        for field_name in fields.keys():
+            if any(stock_term in field_name.lower() for stock_term in ['qty', 'stock', 'available']):
+                stock_fields.append(field_name)
+        return stock_fields
+    except:
+        return []
 
 def register_inventory_tools(mcp: FastMCP) -> None:
     """Registra herramientas relacionadas con inventario"""
@@ -29,7 +50,8 @@ def register_inventory_tools(mcp: FastMCP) -> None:
         Returns:
             Diccionario con información de disponibilidad
         """
-        odoo = ctx.request_context.lifespan_context.odoo
+        from .odoo_client import get_odoo_client
+        odoo = get_odoo_client()
         
         try:
             # Verificar que los productos existen
@@ -45,39 +67,54 @@ def register_inventory_tools(mcp: FastMCP) -> None:
             # Mapear IDs a nombres para referencia
             product_names = {p["id"]: p["name"] for p in products}
             
+            # Check if stock module is available
+            has_stock_module = _check_stock_module_available(odoo)
+            
             # Obtener disponibilidad
             availability = {}
             
             for product_id in params.product_ids:
-                # Construir contexto para la consulta
-                context = {}
-                if params.location_id:
-                    context["location"] = params.location_id
-                
-                # Obtener cantidad disponible usando el método qty_available
                 try:
-                    product_data = odoo.execute_method(
-                        "product.product", 
-                        "read", 
-                        [product_id], 
-                        ["qty_available", "virtual_available", "incoming_qty", "outgoing_qty"],
-                        context
-                    )
-                    
-                    if product_data:
-                        product_info = product_data[0]
+                    # If stock module is not available, provide basic product info
+                    if not has_stock_module:
                         availability[product_id] = {
                             "name": product_names.get(product_id, f"Producto {product_id}"),
-                            "qty_available": product_info["qty_available"],
-                            "virtual_available": product_info["virtual_available"],
-                            "incoming_qty": product_info["incoming_qty"],
-                            "outgoing_qty": product_info["outgoing_qty"]
+                            "stock_module_available": False,
+                            "message": "Stock module not installed. Basic product information only.",
+                            "qty_available": "N/A - Stock module required",
+                            "virtual_available": "N/A - Stock module required",
+                            "incoming_qty": "N/A - Stock module required",
+                            "outgoing_qty": "N/A - Stock module required"
                         }
                     else:
-                        availability[product_id] = {
-                            "name": product_names.get(product_id, f"Producto {product_id}"),
-                            "error": "Producto no encontrado"
-                        }
+                        # Stock module available - try to get stock quantities
+                        context = {}
+                        if params.location_id:
+                            context["location"] = params.location_id
+                        
+                        product_data = odoo.execute_method(
+                            "product.product", 
+                            "read", 
+                            [product_id], 
+                            ["qty_available", "virtual_available", "incoming_qty", "outgoing_qty"],
+                            context
+                        )
+                        
+                        if product_data:
+                            product_info = product_data[0]
+                            availability[product_id] = {
+                                "name": product_names.get(product_id, f"Producto {product_id}"),
+                                "stock_module_available": True,
+                                "qty_available": product_info["qty_available"],
+                                "virtual_available": product_info["virtual_available"],
+                                "incoming_qty": product_info["incoming_qty"],
+                                "outgoing_qty": product_info["outgoing_qty"]
+                            }
+                        else:
+                            availability[product_id] = {
+                                "name": product_names.get(product_id, f"Producto {product_id}"),
+                                "error": "Producto no encontrado"
+                            }
                 except Exception as e:
                     availability[product_id] = {
                         "name": product_names.get(product_id, f"Producto {product_id}"),
@@ -123,7 +160,8 @@ def register_inventory_tools(mcp: FastMCP) -> None:
         Returns:
             Respuesta con el resultado de la operación
         """
-        odoo = ctx.request_context.lifespan_context.odoo
+        from .odoo_client import get_odoo_client
+        odoo = get_odoo_client()
         
         try:
             # Verificar la versión de Odoo para determinar el modelo correcto
@@ -241,7 +279,8 @@ def register_inventory_tools(mcp: FastMCP) -> None:
         Returns:
             Diccionario con resultados del análisis
         """
-        odoo = ctx.request_context.lifespan_context.odoo
+        from .odoo_client import get_odoo_client
+        odoo = get_odoo_client()
         
         try:
             # Validar fechas

@@ -1,0 +1,38 @@
+{
+  "name": "odoo-mcp",
+  "version": "0.0.3",
+  "description": "MCP Server for Odoo Integration",
+  "entrypoint": "src/odoo_mcp/server_with_okta.py",
+  "source": {
+    "type": "filesystem",
+    "path": "src/odoo_mcp/server_with_okta.py"
+  },
+  "transport": {
+    "http": {
+      "port": 8000,
+      "host": "0.0.0.0",
+      "cors": {
+        "allow_origins": ["*"],
+        "allow_credentials": true,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+        "expose_headers": ["*"]
+      }
+    }
+  },
+  "auth": {
+    "provider": "remote_auth",
+    "base_url": "http://localhost:8000"
+  },
+  "environment": {
+    "dependencies": ["requests", "httpx", "pyjwt", "cryptography", "pypi-xmlrpc"],
+    "ODOO_URL":   "http://localhost:10018",
+    "ODOO_DB": "odoo18",
+    "ODOO_USERNAME": "admin",
+    "ODOO_PASSWORD": "admin",
+    "FASTMCP_AUTH_JWKS_URI": "https://trial-2386786.okta.com/oauth2/default/v1/keys",
+    "FASTMCP_AUTH_ISSUER": "https://trial-2386786.okta.com/oauth2/default",
+    "FASTMCP_AUTH_AUDIENCE": "api://default",
+    "FASTMCP_AUTH_CLIENT_ID": "0oave50up5LREJK5n697"
+  }
+}

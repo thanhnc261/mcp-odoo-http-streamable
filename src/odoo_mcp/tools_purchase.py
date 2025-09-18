@@ -4,7 +4,7 @@ Implementación de herramientas (tools) para compras en MCP-Odoo
 
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
-from mcp.server.fastmcp import FastMCP, Context
+from fastmcp import FastMCP, Context
 
 from .models import (
     PurchaseOrderFilter,
@@ -29,7 +29,8 @@ def register_purchase_tools(mcp: FastMCP) -> None:
         Returns:
             Diccionario con resultados de la búsqueda
         """
-        odoo = ctx.request_context.lifespan_context.odoo
+        from .odoo_client import get_odoo_client
+        odoo = get_odoo_client()
         
         try:
             # Construir dominio de búsqueda
@@ -101,7 +102,8 @@ def register_purchase_tools(mcp: FastMCP) -> None:
         Returns:
             Respuesta con el resultado de la operación
         """
-        odoo = ctx.request_context.lifespan_context.odoo
+        from .odoo_client import get_odoo_client
+        odoo = get_odoo_client()
         
         try:
             # Preparar valores para la orden
@@ -162,7 +164,8 @@ def register_purchase_tools(mcp: FastMCP) -> None:
         Returns:
             Diccionario con resultados del análisis
         """
-        odoo = ctx.request_context.lifespan_context.odoo
+        from .odoo_client import get_odoo_client
+        odoo = get_odoo_client()
         
         try:
             # Validar fechas
