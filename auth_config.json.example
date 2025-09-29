@@ -1,0 +1,21 @@
+{
+  "auth": {
+    "provider": "okta",
+    "config": {
+      "domain": "https://trial-aaa.okta.com",
+      "client_id": "aa",
+      "audience": "api://default",
+      "issuer": "https://trial-aaa.okta.com/oauth2/default",
+      "jwks_uri": "https://trial-aaa.okta.com/oauth2/default/v1/keys",
+      "scopes": ["openid", "profile", "email", "mcp:access", "claudeai"],
+      "pkce": true,
+      "base_url": "https://00991336a120.ngrok-free.app",
+      "enhanced": true,
+      "enhanced_config": {
+        "proactive_refresh_threshold": 300,
+        "cleanup_interval": 3600,
+        "connection_check_interval": 1800
+      }
+    }
+  }
+}

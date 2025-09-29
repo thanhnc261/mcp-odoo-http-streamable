@@ -15,11 +15,34 @@ from .odoo_client import OdooClient, get_odoo_client
 from .extensions import register_all_extensions
 
 
-# Lifespan management simplified with FastMCP v2.12.0
+@dataclass
+class AppContext:
+    """Application context for the MCP server"""
+
+    odoo: OdooClient
+
+
+@asynccontextmanager
+async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
+    """
+    Application lifespan for initialization and cleanup
+    """
+    # Initialize Odoo client on startup
+    odoo_client = get_odoo_client()
+
+    try:
+        yield AppContext(odoo=odoo_client)
+    finally:
+        # No cleanup needed for Odoo client
+        pass
 
 
 # Create MCP server
-mcp = FastMCP("Odoo MCP Server")
+mcp = FastMCP(
+    "Odoo MCP Server",
+    dependencies=["requests"],
+    lifespan=app_lifespan,
+)
 
 
 # ----- MCP Resources -----
@@ -209,7 +232,7 @@ def execute_method(
         - result: Result of the method (if success)
         - error: Error message (if failure)
     """
-    odoo = get_odoo_client()
+    odoo = ctx.request_context.lifespan_context.odoo
     try:
         args = args or []
         kwargs = kwargs or {}
@@ -339,7 +362,7 @@ def search_employee(
     Returns:
         SearchEmployeeResponse containing results or error information.
     """
-    odoo = get_odoo_client()
+    odoo = ctx.request_context.lifespan_context.odoo
     model = "hr.employee"
     method = "name_search"
 
@@ -374,7 +397,7 @@ def search_holidays(
     Returns:
         SearchHolidaysResponse:  Object containing the search results.
     """
-    odoo = get_odoo_client()
+    odoo = ctx.request_context.lifespan_context.odoo
 
     # Validate date format using datetime
     try:

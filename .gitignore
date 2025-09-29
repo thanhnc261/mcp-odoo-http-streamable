@@ -48,3 +48,5 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/ 
+
+auth_config.json

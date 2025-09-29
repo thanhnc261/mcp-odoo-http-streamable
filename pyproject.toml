@@ -20,7 +20,7 @@ authors = [
     {name = "Lê Anh Tuấn", email = "justin.le.1105@gmail.com"}
 ]
 dependencies = [
-    "fastmcp>=2.12.3",
+    "fastmcp @ git+https://github.com/jlowin/fastmcp.git",
     "requests>=2.31.0",
     "pypi-xmlrpc==2020.12.3",
     # HTTP streamable transport dependencies

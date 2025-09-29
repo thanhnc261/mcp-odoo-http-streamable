@@ -13,7 +13,7 @@ os.environ.setdefault('ODOO_DB', 'odoo18')
 os.environ.setdefault('ODOO_USERNAME', 'admin')
 os.environ.setdefault('ODOO_PASSWORD', 'admin')
 
-from src.odoo_mcp.server_with_okta import mcp
+from src.odoo_mcp.server_with_auth import mcp
 
 async def main():
     """Run MCP server with HTTP transport."""

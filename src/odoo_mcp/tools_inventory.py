@@ -50,8 +50,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
         Returns:
             Diccionario con información de disponibilidad
         """
-        from .odoo_client import get_odoo_client
-        odoo = get_odoo_client()
+        odoo = ctx.request_context.lifespan_context.odoo
         
         try:
             # Verificar que los productos existen
@@ -160,8 +159,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
         Returns:
             Respuesta con el resultado de la operación
         """
-        from .odoo_client import get_odoo_client
-        odoo = get_odoo_client()
+        odoo = ctx.request_context.lifespan_context.odoo
         
         try:
             # Verificar la versión de Odoo para determinar el modelo correcto
@@ -279,8 +277,7 @@ def register_inventory_tools(mcp: FastMCP) -> None:
         Returns:
             Diccionario con resultados del análisis
         """
-        from .odoo_client import get_odoo_client
-        odoo = get_odoo_client()
+        odoo = ctx.request_context.lifespan_context.odoo
         
         try:
             # Validar fechas
